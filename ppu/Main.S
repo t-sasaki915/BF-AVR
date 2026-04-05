@@ -3,9 +3,7 @@
 #define H_SYNC_PIN 5
 #define V_SYNC_PIN 4
 
-#define R_PIN 3
-#define G_PIN 2
-#define B_PIN 1
+#define PIXEL_PIN 3
 
 #define LINE_CNT_L R24
 #define LINE_CNT_H R25
@@ -29,9 +27,7 @@ RESET:
     SBI  _SFR_IO_ADDR(PORTC), H_SYNC_PIN
     SBI  _SFR_IO_ADDR(DDRC), V_SYNC_PIN          ; Set V_SYNC_PIN to output mode and HIGH.
     SBI  _SFR_IO_ADDR(PORTC), V_SYNC_PIN
-    SBI  _SFR_IO_ADDR(DDRB), R_PIN
-    SBI  _SFR_IO_ADDR(DDRB), G_PIN
-    SBI  _SFR_IO_ADDR(DDRB), B_PIN
+    SBI  _SFR_IO_ADDR(DDRC), PIXEL_PIN           ; Set PIXEL_PIN to output mode.
 
     LDI  LINE_CNT_H, hi8(525)
     LDI  LINE_CNT_L, lo8(525)
@@ -83,14 +79,14 @@ BACK_PORCH_WAIT:
 
 ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
     LDI  WAIT_CNT, 134                           ; 1 clock
-    SBI _SFR_IO_ADDR(PORTB), G_PIN
+    SBI _SFR_IO_ADDR(PORTC), PIXEL_PIN
 ACTIVE_VIDEO_WAIT:
     DEC  WAIT_CNT                                ; 1 clock
     BRNE ACTIVE_VIDEO_WAIT                       ; if WAIT_CNT /= 0 then 2 clocks else 1 clock.
     ;NOP                                          ; 1 clock
     ;NOP                                          ; 1 clock
     NOP
-    CBI _SFR_IO_ADDR(PORTB), G_PIN
+    CBI _SFR_IO_ADDR(PORTC), PIXEL_PIN
                                                  ; Total 407 clocks. (25.4375 microseconds on 16MHz; ideal: 25.42204 microseconds.)
                                                  ; -- End Active Video ---
 
