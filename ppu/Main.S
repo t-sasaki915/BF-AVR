@@ -93,9 +93,9 @@ VSYNC_IS_SET:                                    ; 12 clocks so far.
 SYNC_PULSE_WAIT:
     DEC  WAIT_CNT                                ; 1 clock
     BRNE SYNC_PULSE_WAIT                         ; if WAIT_CNT /= 0 then 2 clocks else 1 clock.
-    CPI  LINE_CNT_L, 47                          ; 1 clock
+    CPI  LINE_CNT_L, 46                          ; 1 clock
     CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
-    BRSH WAIT_THREE_CLOCKS_AND_BACK_PORCH        ; 2 clocks (>= 47) / 1 clock (< 47)
+    BRSH WAIT_THREE_CLOCKS_AND_BACK_PORCH        ; 2 clocks (>= 46) / 1 clock (< 46)
 
     NOP                                          ; 1 clock
     JMP  VBLANK                                  ; 3 clocks
