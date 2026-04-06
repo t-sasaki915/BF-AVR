@@ -36,7 +36,7 @@ TEMP_COPY_TEST_PATTERN_TO_VRAM:
     LDI  ZL, lo8(TEST_PATTERN)
     LDI  YH, hi8(VRAM_ADDR)
     LDI  YL, lo8(VRAM_ADDR)
-    LDI  R16, 101
+    LDI  R16, 135
 
 TEMP_COPY_TEST_PATTERN_TO_VRAM_LOOP:
     LPM  R17, Z+
@@ -119,13 +119,13 @@ BACK_PORCH_WAIT:
 .endm
 
 ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
-    OUT _SFR_IO_ADDR(DDRB), ZERO_REG             ; 1 clock
+    OUT _SFR_IO_ADDR(PORTB), ZERO_REG            ; 1 clock
     RENDER_DOT_100                               ; 300 clocks
     RENDER_DOT_10                                ; 30 clocks
     RENDER_DOT_10                                ; 30 clocks
     RENDER_DOT_10                                ; 30 clocks
     RENDER_DOT_5                                 ; 15 clocks
-    OUT _SFR_IO_ADDR(DDRB), ZERO_REG             ; 1 clock
+    OUT _SFR_IO_ADDR(PORTB), ZERO_REG            ; 1 clock
                                                  ; Total 407 clocks. (25.4375 microseconds on 16MHz; ideal: 25.42204 microseconds.)
                                                  ; -- End Active Video ---
 
@@ -163,4 +163,7 @@ TEST_PATTERN:
     .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 80
     .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 90
     .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 100
-    .byte ONE                                                   ; 101
+    .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 110
+    .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 120
+    .byte ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO, ONE, ZERO ; 130
+    .byte ONE, ZERO, ONE, ZERO, ONE                             ; 105
