@@ -90,114 +90,42 @@ BACK_PORCH_WAIT:
 .macro RENDER_DOT
     LD  R17, Z+
     OUT _SFR_IO_ADDR(PORTB), R17
-    NOP
+.endm
+
+.macro RENDER_DOT_5
+    RENDER_DOT
+    RENDER_DOT
+    RENDER_DOT
+    RENDER_DOT
+    RENDER_DOT
+.endm
+
+.macro RENDER_DOT_10
+    RENDER_DOT_5
+    RENDER_DOT_5
+.endm
+
+.macro RENDER_DOT_100
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
+    RENDER_DOT_10
 .endm
 
 ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
-    OUT _SFR_IO_ADDR(DDRB), ZERO_REG
-    NOP
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    RENDER_DOT
-    OUT _SFR_IO_ADDR(DDRB), ZERO_REG
+    OUT _SFR_IO_ADDR(DDRB), ZERO_REG             ; 1 clock
+    RENDER_DOT_100                               ; 300 clocks
+    RENDER_DOT_10                                ; 30 clocks
+    RENDER_DOT_10                                ; 30 clocks
+    RENDER_DOT_10                                ; 30 clocks
+    RENDER_DOT_5                                 ; 15 clocks
+    OUT _SFR_IO_ADDR(DDRB), ZERO_REG             ; 1 clock
                                                  ; Total 407 clocks. (25.4375 microseconds on 16MHz; ideal: 25.42204 microseconds.)
                                                  ; -- End Active Video ---
 
