@@ -1,31 +1,25 @@
-TARGET = Main
+MCU = avr128db28
 
-MCU = atmega328
-
-PROGRAMMER = usbasp
-
-F_CPU = 16000000UL
+PROGRAMMER = serialupdi
+PROGRAMMER_PORT = COM9
 
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 AVRDUDE = avrdude
 
-CFLAGS = -Wall -Wextra -Wpedantic -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS = -Wall -Wextra -Wpedantic -Os -mmcu=$(MCU)
 LDFLAGS = -Wl,-Ttext=0x0000
 
-all: $(TARGET).hex $(TARGET).S
+all: Main.hex Main.S DMML.c
 
-$(TARGET).elf: $(TARGET).S
-	$(CC) $(CFLAGS) $(LDFLAGS) -nostartfiles -o $(TARGET).elf $(TARGET).S
+Main.elf: Main.S DMML.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -nostartfiles -o Main.elf Main.S DMML.c
 
-$(TARGET).hex: $(TARGET).elf
-	$(OBJCOPY) -O ihex -R .eeprom $(TARGET).elf $(TARGET).hex
+Main.hex: Main.elf
+	$(OBJCOPY) -O ihex -R .eeprom Main.elf Main.hex
 
-flash: $(TARGET).hex
-	$(AVRDUDE) -c $(PROGRAMMER) -p $(MCU) -U flash:w:$(TARGET).hex:i
-
-fuse:
-	$(AVRDUDE) -c ${PROGRAMMER} -B 32 -p ${MCU} -U hfuse:w:0xDE:m -U lfuse:w:0xFF:m
+flash: Main.hex
+	$(AVRDUDE) -c $(PROGRAMMER) -p $(MCU) -P ${PROGRAMMER_PORT} -U flash:w:Main.hex:i
 
 clean:
-	del $(TARGET).elf $(TARGET).hex
+	del Main.elf Main.hex

@@ -1,4 +1,0 @@
-(fp_lib_table
-  (version 7)
-  (lib (name "Connector_Mini-DIN")(type "KiCad")(uri "${KIPRJMOD}/libs/Connector_Mini-DIN.pretty")(options "")(descr ""))
-)
