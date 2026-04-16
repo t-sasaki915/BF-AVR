@@ -76,7 +76,7 @@
     <a name="appearance" val="logisim_evolution"/>
     <a name="circuit" val="main"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
-    <a name="simulationFrequency" val="512.0"/>
+    <a name="simulationFrequency" val="4000.0"/>
     <comp lib="0" loc="(1070,220)" name="Constant">
       <a name="value" val="0x20c"/>
       <a name="width" val="12"/>
@@ -143,6 +143,9 @@
       <a name="facing" val="north"/>
       <a name="label" val="ACTIVE_VIDEO_PREPARE"/>
       <a name="labelloc" val="south"/>
+    </comp>
+    <comp lib="1" loc="(1240,280)" name="OR Gate">
+      <a name="facing" val="south"/>
     </comp>
     <comp lib="1" loc="(580,620)" name="AND Gate">
       <a name="facing" val="south"/>
@@ -221,18 +224,23 @@
     <wire from="(1140,160)" to="(1140,230)"/>
     <wire from="(1150,290)" to="(1150,380)"/>
     <wire from="(1150,380)" to="(1240,380)"/>
-    <wire from="(1180,270)" to="(1180,350)"/>
-    <wire from="(1180,270)" to="(1240,270)"/>
+    <wire from="(1180,220)" to="(1180,350)"/>
+    <wire from="(1180,220)" to="(1220,220)"/>
     <wire from="(1180,390)" to="(1180,410)"/>
     <wire from="(1180,390)" to="(1240,390)"/>
     <wire from="(1180,470)" to="(1180,490)"/>
     <wire from="(1180,490)" to="(1240,490)"/>
-    <wire from="(1240,270)" to="(1240,290)"/>
+    <wire from="(1220,220)" to="(1220,230)"/>
+    <wire from="(1240,280)" to="(1240,290)"/>
     <wire from="(1240,350)" to="(1240,380)"/>
     <wire from="(1240,390)" to="(1240,410)"/>
+    <wire from="(1240,390)" to="(1330,390)"/>
     <wire from="(1240,470)" to="(1240,490)"/>
+    <wire from="(1260,220)" to="(1260,230)"/>
+    <wire from="(1260,220)" to="(1330,220)"/>
     <wire from="(1270,420)" to="(1280,420)"/>
     <wire from="(1280,420)" to="(1280,560)"/>
+    <wire from="(1330,220)" to="(1330,390)"/>
     <wire from="(150,260)" to="(170,260)"/>
     <wire from="(170,260)" to="(170,270)"/>
     <wire from="(170,260)" to="(190,260)"/>
