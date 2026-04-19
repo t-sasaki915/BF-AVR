@@ -2,11 +2,15 @@
 
 #define H_SYNC_PIN 1
 #define V_SYNC_PIN 2
+#define VIDEO_PREPARE_PIN 3
+#define VIDEO_PIN 4
 
 #define WAIT_CNT R16
 #define ZERO_REG R17
 #define H_SYNC_PIN_BITMASK R18
 #define V_SYNC_PIN_BITMASK R19
+#define VIDEO_PREPARE_PIN_BITMASK R20
+#define VIDEO_PIN_BITMASK R21
 #define LINE_CNT_L R24
 #define LINE_CNT_H R25
 
@@ -29,13 +33,18 @@ RESET:
     OUT  CPU_CCP, R16
     STS  CLKCTRL_OSCHFCTRLA, R17
 
-    LDI  R16, (1 << H_SYNC_PIN) | (1 << V_SYNC_PIN)
+    LDI  R16, (1 << H_SYNC_PIN)
+    ORI  R16, (1 << V_SYNC_PIN)
+    ORI  R16, (1 << VIDEO_PREPARE_PIN)
+    ORI  R16, (1 << VIDEO_PIN)
     STS  PORTD_DIR, R16
     STS  PORTD_OUT, R16
 
     LDI  ZERO_REG, 0
     LDI  H_SYNC_PIN_BITMASK, (1 << H_SYNC_PIN)
     LDI  V_SYNC_PIN_BITMASK, (1 << V_SYNC_PIN)
+    LDI  VIDEO_PREPARE_PIN_BITMASK, (1 << VIDEO_PREPARE_PIN)
+    LDI  VIDEO_PIN_BITMASK, (1 << VIDEO_PIN)
 
     LDI  LINE_CNT_H, hi8(525)
     LDI  LINE_CNT_L, lo8(525)
@@ -45,10 +54,10 @@ SYNC_PULSE:                                      ; --- Begin Sync Pulse ---
 
     CPI  LINE_CNT_L, 34                          ; 1 clock
     CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
-    BREQ WAIT_THREE_CLOCKS_AND_SET_VSYNC_LOW     ; if LINE_CNT == 34 then 2 clocks else 1 clock.
+    BREQ WAIT_THREE_CLOCKS_AND_SET_VSYNC_LOW     ; 2 clocks (== 34) / 1 clock (/= 34)
     CPI  LINE_CNT_L, 35                          ; 1 clock
     CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
-    BREQ SET_VSYNC_LOW                           ; if LINE_CNT == 35 then 2 clocks else 1 clock.
+    BREQ SET_VSYNC_LOW                           ; 2 clocks (== 35) / 1 clock (/= 35)
 
     STS  PORTD_OUTSET, V_SYNC_PIN_BITMASK        ; 2 clocks
     RJMP VSYNC_IS_SET                            ; 2 clocks
@@ -70,14 +79,44 @@ VSYNC_IS_SET:                                    ; 12 clocks so far.
 
 BACK_PORCH:                                      ; --- Begin Back Porch ---
     STS  PORTD_OUTSET, H_SYNC_PIN_BITMASK        ; 2 clocks
-    SLP3 14                                      ; 42 clock
+    CPI  LINE_CNT_L, 46                          ; 1 clock
+    CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
+    BRSH BACK_PORCH_WITH_VIDEO_PULSE             ; 2 clocks (>= 46) / 1 clock (< 46)
+                                                 ; 5 clocks so far
+    SLP3 12                                      ; 36 clocks
     NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    RJMP ACTIVE_VIDEO_NO_PULSE                   ; 2 clocks
                                                  ; Total 45 clocks.
                                                  ; -- End Back Porch ---
 
-ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
-    SLP3 203                                     ; 609 clocks
+BACK_PORCH_WITH_VIDEO_PULSE:                     ; 6 clocks so far
+    STS  PORTD_OUTCLR, VIDEO_PREPARE_PIN_BITMASK ; 2 clocks
     NOP                                          ; 1 clock
+    STS  PORTD_OUTSET, VIDEO_PREPARE_PIN_BITMASK ; 2 clocks
+    SLP3 10                                      ; 30 clock
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    RJMP ACTIVE_VIDEO_WITH_PULSE                 ; 2 clocks
+                                                 ; Total 45 clocks.
+                                                 ; -- End Back Porch ---
+
+ACTIVE_VIDEO_NO_PULSE:                           ; -- Begin Active Video ---
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    RJMP ACTIVE_VIDEO_WAIT                       ; 2 clocks
+
+ACTIVE_VIDEO_WITH_PULSE:
+    STS  PORTD_OUTCLR, VIDEO_PIN_BITMASK         ; 2 clocks
+    NOP                                          ; 1 clock
+    STS  PORTD_OUTSET, VIDEO_PIN_BITMASK         ; 2 clocks
+    RJMP ACTIVE_VIDEO_WAIT                       ; 2 clocks
+
+ACTIVE_VIDEO_WAIT:                               ; 7 clocks so far
+    SLP3 201                                     ; 603 clocks
                                                  ; Total 610 clocks.
                                                  ; -- End Active Video ---
 
