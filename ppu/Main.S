@@ -123,9 +123,10 @@ BACK_PORCH_CONTINUE:                             ; 6 clocks so far
     LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
     ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
     ADC  FONT_BYTE_ADDR_BASE_H, ZERO_REG         ; 1 clock
+    LDI  TEMP_REG, 8                             ; 1 clock
 
     LD   FONT_BYTE_ADDR_L, TEXT_BUFFER_IDX+      ; 2 clocks
-    LDI  TEMP_REG, 8                             ; 1 clock
+    LDI  FONT_BYTE_ADDR_H, 0                     ; 1 clock
     MUL  FONT_BYTE_ADDR_L, TEMP_REG              ; 2 clocks
     MOVW FONT_BYTE_ADDR_L, R0                    ; 1 clock
 
