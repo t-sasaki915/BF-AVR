@@ -9,11 +9,18 @@
 #define WAIT_CNT R19
 #define LINE_OF_FONT R20
 #define VERTICAL_REPEAT_FLG R21
-#define CURRENT_FONT_ID R22
+#define FONT_BYTE R22
+#define TEMP_REG R23
 #define LINE_CNT_L R24
 #define LINE_CNT_H R25
 #define TEXT_BUFFER_IDX_L XL
 #define TEXT_BUFFER_IDX_H XH
+#define TEXT_BUFFER_IDX X
+#define FONT_BYTE_ADDR_BASE_L YL
+#define FONT_BYTE_ADDR_BASE_H YH
+#define FONT_BYTE_ADDR_L ZL
+#define FONT_BYTE_ADDR_H ZH
+#define FONT_BYTE_ADDR Z
 
 .section .text_buffer_section, "aw", @nobits
 .ORG 0x0000
@@ -112,6 +119,21 @@ BACK_PORCH:                                      ; --- Begin Back Porch ---
     RJMP VBLANK                                  ; (2 clocks)
 
 BACK_PORCH_CONTINUE:                             ; 6 clocks so far
+    LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
+    LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
+    ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
+    ADC  FONT_BYTE_ADDR_BASE_H, ZERO_REG         ; 1 clock
+
+    LD   FONT_BYTE_ADDR_L, TEXT_BUFFER_IDX+      ; 2 clocks
+    LDI  TEMP_REG, 8                             ; 1 clock
+    MUL  FONT_BYTE_ADDR_L, TEMP_REG              ; 2 clocks
+    MOVW FONT_BYTE_ADDR_L, R0                    ; 1 clock
+
+    ADD  FONT_BYTE_ADDR_L, FONT_BYTE_ADDR_BASE_L ; 1 clock 
+    ADC  FONT_BYTE_ADDR_H, FONT_BYTE_ADDR_BASE_H ; 1 clock
+
+    LD   FONT_BYTE, FONT_BYTE_ADDR               ; 2 clocks
+
     SLP3 12                                      ; 36 clocks
     NOP                                          ; 1 clock
     RJMP ACTIVE_VIDEO                            ; 2 clocks
