@@ -1,7 +1,7 @@
 #include <avr/io.h>
 
-#define H_SYNC_PIN 1
-#define V_SYNC_PIN 2
+#define V_SYNC_PIN 1
+#define H_SYNC_PIN 2
 
 #define ZERO_REG R16
 #define H_SYNC_PIN_BITMASK R17
@@ -51,6 +51,22 @@ RESET:
     STS  PORTD_DIR, R16
     STS  PORTD_OUT, R16
 
+    LDI  R16, PIN4_bm
+    ORI  R16, PIN6_bm
+    ORI  R16, PIN7_bm
+    STS  PORTA_DIR, R16
+
+    LDI  R16, SPI_MASTER_bm
+    ORI  R16, SPI_ENABLE_bm
+    ORI  R16, SPI_CLK2X_bm
+    STS  SPI0_CTRLA, R16
+
+    LDI  R16, SPI_SSD_bm
+    STS  SPI0_CTRLB, R16
+
+    LDI  R16, 0x80
+    STS  PORTA_PIN4CTRL, R16
+
 GENERATE_TEST_TEXT_BUFFER:
     LDI  ZH, hi8(TEXT_BUFFER)
     LDI  ZL, lo8(TEXT_BUFFER)
@@ -83,7 +99,7 @@ RESET_CONTINUE:
     LDI  TEXT_BUFFER_IDX_L, lo8(0)
 
 SYNC_PULSE:                                      ; --- Begin Sync Pulse ---
-    STS  PORTD_OUTCLR, H_SYNC_PIN_BITMASK        ; 2 clocks
+    CBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
 
     CPI  LINE_CNT_L, 34                          ; 1 clock
     CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
@@ -92,7 +108,7 @@ SYNC_PULSE:                                      ; --- Begin Sync Pulse ---
     CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
     BREQ SET_VSYNC_LOW                           ; 2 clocks (== 35) / 1 clock (/= 35)
 
-    STS  PORTD_OUTSET, V_SYNC_PIN_BITMASK        ; 2 clocks
+    SBI  VPORTD_OUT, V_SYNC_PIN                  ; 1 clock
     RJMP VSYNC_IS_SET                            ; 2 clocks
 
 WAIT_THREE_CLOCKS_AND_SET_VSYNC_LOW:
@@ -101,24 +117,17 @@ WAIT_THREE_CLOCKS_AND_SET_VSYNC_LOW:
     NOP                                          ; 1 clock
 
 SET_VSYNC_LOW:
-    STS  PORTD_OUTCLR, V_SYNC_PIN_BITMASK        ; 2 clocks
+    CBI  VPORTD_OUT, V_SYNC_PIN                  ; 1 clock
     NOP                                          ; 1 clock
 
-VSYNC_IS_SET:                                    ; 12 clocks so far.
-    SLP3 26                                      ; 78 clocks
-    NOP                                          ; 1 clock
+VSYNC_IS_SET:                                    ; 10 clocks so far.
+    SLP3 27                                      ; 81 clocks
                                                  ; Total 91 clocks.
                                                  ; --- End Sync Pulse ---
 
 BACK_PORCH:                                      ; --- Begin Back Porch ---
-    STS  PORTD_OUTSET, H_SYNC_PIN_BITMASK        ; 2 clocks
-    CPI  LINE_CNT_L, 46                          ; 1 clock
-    CPC  LINE_CNT_H, ZERO_REG                    ; 1 clock
-    BRSH BACK_PORCH_CONTINUE                     ; 2 clocks (>= 46) / 1 clock (< 46)
+    SBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
 
-    RJMP VBLANK                                  ; (2 clocks)
-
-BACK_PORCH_CONTINUE:                             ; 6 clocks so far
     LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
     LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
     ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
@@ -134,23 +143,17 @@ BACK_PORCH_CONTINUE:                             ; 6 clocks so far
     ADC  FONT_BYTE_ADDR_H, FONT_BYTE_ADDR_BASE_H ; 1 clock
 
     LD   FONT_BYTE, FONT_BYTE_ADDR               ; 2 clocks
+    COM  FONT_BYTE                               ; 1 clock
 
-    SLP3 7                                       ; 21 clocks
+    SLP3 9                                       ; 27 clocks
     NOP                                          ; 1 clock
-    RJMP ACTIVE_VIDEO                            ; 2 clocks
                                                  ; Total 45 clocks.
                                                  ; -- End Back Porch ---
 
-VBLANK:                                          ; 7 clocks so far
-    SLP3 215                                     ; 645 clocks
-    NOP                                          ; 1 clock
-    RJMP FRONT_PORCH                             ; 2 clocks
-
 ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
-    STS  SPI0_DATA, FONT_BYTE                    ; 2 clock
+    STS  SPI0_DATA, FONT_BYTE                    ; 2 clocks
     SLP3 202                                     ; 606 clocks
-    NOP                                          ; 1 clock
-    NOP                                          ; 1 clock
+    STS  SPI0_DATA, ZERO_REG                     ; 2 clocks
                                                  ; Total 610 clocks.
                                                  ; -- End Active Video ---
 
