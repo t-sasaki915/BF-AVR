@@ -8,7 +8,8 @@
 #define LINE_OF_FONT R18
 #define VERTICAL_REPEAT_FLG R19
 #define FONT_BYTE R20
-#define TEMP_REG R21
+#define TEXT_BUFFER_ADDR_INCR_FLG R21
+#define TEMP_REG R22
 #define LINE_CNT_L R24
 #define LINE_CNT_H R25
 #define TEXT_BUFFER_ADDR_L XL
@@ -90,6 +91,7 @@ RESET_CONTINUE:
     LDI  LINE_OF_FONT, 0
     LDI  VERTICAL_REPEAT_FLG, 1
     LDI  FONT_BYTE, 0
+    LDI  TEXT_BUFFER_ADDR_INCR_FLG, 0
     LDI  TEMP_REG, 0
     LDI  LINE_CNT_H, hi8(525)
     LDI  LINE_CNT_L, lo8(525)
@@ -128,16 +130,7 @@ VSYNC_IS_SET:                                    ; 10 clocks so far.
                                                  ; Total 92 clocks.
                                                  ; --- End Sync Pulse ---
 
-BACK_PORCH:                                      ; --- Begin Back Porch ---
-    SBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
-
-    LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
-    LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
-    ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
-    ADC  FONT_BYTE_ADDR_BASE_H, ZERO_REG         ; 1 clock
-
-    LDI  TEMP_REG, 8                             ; 1 clock
-
+.MACRO LOAD_FONT_BYTE                            ; 11 clocks
     LD   FONT_BYTE_ADDR_L, TEXT_BUFFER_ADDR      ; 2 clocks
     MUL  FONT_BYTE_ADDR_L, TEMP_REG              ; 2 clocks
     MOVW FONT_BYTE_ADDR_L, R0                    ; 1 clock
@@ -147,10 +140,42 @@ BACK_PORCH:                                      ; --- Begin Back Porch ---
 
     LPM  FONT_BYTE, FONT_BYTE_ADDR               ; 3 clocks
     COM  FONT_BYTE                               ; 1 clock
+.ENDM
 
-    SLP3 9                                       ; 27 clocks
+BACK_PORCH:                                      ; --- Begin Back Porch ---
+    SBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
+
+    TST  TEXT_BUFFER_ADDR_INCR_FLG               ; 1 clock
+    BREQ SKIP_TEXT_BUFFER_ADDR_INCR_AND_CONTINUE ; 2 clocks (== 0) / 1 clock (== 1)
+
+    INC  LINE_OF_FONT                            ; 1 clock
+    CPI  LINE_OF_FONT, 8                         ; 1 clock
+    BRNE LINE_OF_FONT_IS_NOT_EIGHT               ; 2 clocks (/= 8) / 1 clock (== 8)
+
+    LDI  LINE_OF_FONT, 0                         ; 1 clock
+    RJMP BACK_PORCH_CONTINUE                     ; 2 clocks
+
+SKIP_TEXT_BUFFER_ADDR_INCR_AND_CONTINUE:
+    LDI  TEXT_BUFFER_ADDR_INCR_FLG, 1            ; 1 clock
     NOP                                          ; 1 clock
     NOP                                          ; 1 clock
+    RJMP BACK_PORCH_CONTINUE                     ; 2 clocks
+
+LINE_OF_FONT_IS_NOT_EIGHT:
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+
+BACK_PORCH_CONTINUE:                             ; 9 clocks so far
+    LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
+    LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
+    ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
+    ADC  FONT_BYTE_ADDR_BASE_H, ZERO_REG         ; 1 clock
+
+    LDI  TEMP_REG, 8                             ; 1 clock
+
+    LOAD_FONT_BYTE                               ; 11 clocks
+
+    SLP3 7                                       ; 21 clocks
                                                  ; Total 46 clocks.
                                                  ; -- End Back Porch ---
 
@@ -169,6 +194,7 @@ FRONT_PORCH:                                     ; --- Begin Front Porch ---
     NOP                                          ; 1 clock
     NOP                                          ; 1 clock
     NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
     RJMP FRONT_PORCH_CONTINUE                    ; 2 clocks
 
 RESET_LINE_CNT:
@@ -177,18 +203,14 @@ RESET_LINE_CNT:
     LDI  TEXT_BUFFER_ADDR_H, hi8(TEXT_BUFFER)    ; 1 clock
     LDI  TEXT_BUFFER_ADDR_L, lo8(TEXT_BUFFER)    ; 1 clock
     LDI  LINE_OF_FONT, 0                         ; 1 clock
+    LDI  TEXT_BUFFER_ADDR_INCR_FLG, 1            ; 1 clock
 
-FRONT_PORCH_CONTINUE:                            ; 9 clocks so far
-    INC  LINE_OF_FONT                            ; 1 clock
-    CPI  LINE_OF_FONT, 8                         ; 1 clock
-    BRNE FRONT_PORCH_CONTINUE_2                  ; 2 clocks (/= 8) / 1 clock (== 8)
-
-    LDI  LINE_OF_FONT, 0                         ; 1 clock
+FRONT_PORCH_CONTINUE:                            ; 10 clocks so far
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
     RJMP SYNC_PULSE                              ; 2 clock
                                                  ; Total 15 clocks.
                                                  ; -- End Front Porch ---
-
-FRONT_PORCH_CONTINUE_2:
-    RJMP SYNC_PULSE                              ; 2 clocks
 
 #include "Font.S"
