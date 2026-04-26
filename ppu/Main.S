@@ -175,13 +175,18 @@ RESET_LINE_CNT:
     LDI  TEXT_BUFFER_ADDR_L, lo8(TEXT_BUFFER)    ; 1 clock
 
 FRONT_PORCH_CONTINUE:                            ; 8 clocks so far
-    NOP                                          ; 1 clock
-    NOP                                          ; 1 clock
-    NOP                                          ; 1 clock
+    INC  LINE_OF_FONT                            ; 1 clock
+    CPI  LINE_OF_FONT, 8                         ; 1 clock
+    BREQ RESET_LINE_OF_FONT                      ; 2 clocks (== 8) / 1 clock (/= 8)
+
     NOP                                          ; 1 clock
     NOP                                          ; 1 clock
     RJMP SYNC_PULSE                              ; 2 clocks
                                                  ; Total 15 clocks.
                                                  ; -- End Front Porch ---
+
+RESET_LINE_OF_FONT:
+    LDI  LINE_OF_FONT, 0                         ; 1 clock
+    RJMP SYNC_PULSE                              ; 2 clocks
 
 #include "Font.S"
