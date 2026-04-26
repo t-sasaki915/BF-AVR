@@ -11,9 +11,9 @@
 #define TEMP_REG R21
 #define LINE_CNT_L R24
 #define LINE_CNT_H R25
-#define TEXT_BUFFER_IDX_L XL
-#define TEXT_BUFFER_IDX_H XH
-#define TEXT_BUFFER_IDX X
+#define TEXT_BUFFER_ADDR_L XL
+#define TEXT_BUFFER_ADDR_H XH
+#define TEXT_BUFFER_ADDR X
 #define FONT_BYTE_ADDR_BASE_L YL
 #define FONT_BYTE_ADDR_BASE_H YH
 #define FONT_BYTE_ADDR_L ZL
@@ -85,14 +85,20 @@ GENERATE_TEST_TEXT_BUFFER_CONTINUE:
     BRNE GENERATE_TEST_TEXT_BUFFER_LOOP
 
 RESET_CONTINUE:
+    LDI  ZERO_REG, 0
+    LDI  WAIT_CNT, 0
     LDI  LINE_OF_FONT, 0
     LDI  VERTICAL_REPEAT_FLG, 1
-    LDI  ZERO_REG, 0
-
+    LDI  FONT_BYTE, 0
+    LDI  TEMP_REG, 0
     LDI  LINE_CNT_H, hi8(525)
     LDI  LINE_CNT_L, lo8(525)
-    LDI  TEXT_BUFFER_IDX_H, hi8(0)
-    LDI  TEXT_BUFFER_IDX_L, lo8(0)
+    LDI  TEXT_BUFFER_ADDR_H, hi8(TEXT_BUFFER)
+    LDI  TEXT_BUFFER_ADDR_L, lo8(TEXT_BUFFER)
+    LDI  FONT_BYTE_ADDR_BASE_H, hi8(0)
+    LDI  FONT_BYTE_ADDR_BASE_L, lo8(0)
+    LDI  FONT_BYTE_ADDR_H, hi8(0)
+    LDI  FONT_BYTE_ADDR_L, lo8(0)
 
 SYNC_PULSE:                                      ; --- Begin Sync Pulse ---
     CBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
@@ -124,21 +130,21 @@ VSYNC_IS_SET:                                    ; 10 clocks so far.
 BACK_PORCH:                                      ; --- Begin Back Porch ---
     SBI  VPORTD_OUT, H_SYNC_PIN                  ; 1 clock
 
-    LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
     LDI  FONT_BYTE_ADDR_BASE_L, lo8(FONT_DATA)   ; 1 clock
+    LDI  FONT_BYTE_ADDR_BASE_H, hi8(FONT_DATA)   ; 1 clock
     ADD  FONT_BYTE_ADDR_BASE_L, LINE_OF_FONT     ; 1 clock
     ADC  FONT_BYTE_ADDR_BASE_H, ZERO_REG         ; 1 clock
+
     LDI  TEMP_REG, 8                             ; 1 clock
 
-    LD   FONT_BYTE_ADDR_L, TEXT_BUFFER_IDX+      ; 2 clocks
-    LDI  FONT_BYTE_ADDR_H, 0                     ; 1 clock
+    LD   FONT_BYTE_ADDR_L, TEXT_BUFFER_ADDR      ; 2 clocks
     MUL  FONT_BYTE_ADDR_L, TEMP_REG              ; 2 clocks
     MOVW FONT_BYTE_ADDR_L, R0                    ; 1 clock
 
     ADD  FONT_BYTE_ADDR_L, FONT_BYTE_ADDR_BASE_L ; 1 clock 
     ADC  FONT_BYTE_ADDR_H, FONT_BYTE_ADDR_BASE_H ; 1 clock
 
-    LD   FONT_BYTE, FONT_BYTE_ADDR               ; 2 clocks
+    LPM  FONT_BYTE, FONT_BYTE_ADDR               ; 3 clocks
     COM  FONT_BYTE                               ; 1 clock
 
     SLP3 9                                       ; 27 clocks
@@ -149,7 +155,8 @@ BACK_PORCH:                                      ; --- Begin Back Porch ---
 ACTIVE_VIDEO:                                    ; -- Begin Active Video ---
     STS  SPI0_DATA, FONT_BYTE                    ; 2 clocks
     SLP3 202                                     ; 606 clocks
-    STS  SPI0_DATA, ZERO_REG                     ; 2 clocks
+    NOP                                          ; 1 clock
+    NOP                                          ; 1 clock
                                                  ; Total 610 clocks.
                                                  ; -- End Active Video ---
 
@@ -164,8 +171,8 @@ FRONT_PORCH:                                     ; --- Begin Front Porch ---
 RESET_LINE_CNT:
     LDI  LINE_CNT_H, hi8(525)                    ; 1 clock
     LDI  LINE_CNT_L, lo8(525)                    ; 1 clock
-    LDI  TEXT_BUFFER_IDX_H, hi8(0)               ; 1 clock
-    LDI  TEXT_BUFFER_IDX_L, lo8(0)               ; 1 clock
+    LDI  TEXT_BUFFER_ADDR_H, hi8(TEXT_BUFFER)    ; 1 clock
+    LDI  TEXT_BUFFER_ADDR_L, lo8(TEXT_BUFFER)    ; 1 clock
 
 FRONT_PORCH_CONTINUE:                            ; 8 clocks so far
     NOP                                          ; 1 clock
