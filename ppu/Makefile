@@ -8,7 +8,7 @@ OBJCOPY = avr-objcopy
 AVRDUDE = avrdude
 
 CFLAGS = -Wall -Wextra -Wpedantic -Os -mmcu=$(MCU)
-LDFLAGS = -Wl,-Ttext=0x0000,--section-start=.text_buffer_section=0x804000
+LDFLAGS = -Wl,-Ttext=0x0000
 
 all: Main.hex Main.S
 

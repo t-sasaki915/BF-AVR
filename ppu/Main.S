@@ -21,10 +21,7 @@
 #define FONT_BYTE_ADDR_H ZH
 #define FONT_BYTE_ADDR Z
 
-.section .text_buffer_section, "aw", @nobits
-.ORG 0x0000
-TEXT_BUFFER:
-    .SPACE 1140
+#define TEXT_BUFFER 0x4000
 
 .MACRO SLP3 n                                    ; 3nクロック分消費するマクロです。
     LDI  WAIT_CNT, \n                            ;   LDI[1] + (n - 1) * (DEC[1] + BRNE[2]) + (DEC[1] + BRNE[1])
@@ -86,7 +83,7 @@ GENERATE_TEST_TEXT_BUFFER_LOOP:
     INC  R16
     CPI  R16, 68
     BRNE GENERATE_TEST_TEXT_BUFFER_CONTINUE
-    LDI  R16, 0
+    LDI  R16, 65
 
 GENERATE_TEST_TEXT_BUFFER_CONTINUE:
     SBIW XL, 1
